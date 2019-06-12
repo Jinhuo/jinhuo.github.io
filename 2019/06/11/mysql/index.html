@@ -7,17 +7,17 @@
   
   <title>mysql | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="This is h1Hello world 这是我mysql总结： 1select * from .....   skill people lange  This">
+  <meta name="description" content="mysql notes#short version第一篇：比like更高效的查询方法 like normal 用法 1select * from `table` where `field` like &amp;apos;%keyword%&amp;apos;;  其他更高效的查询方法 123select * from `table` where `field` instr(`field`, &amp;apos;keywo">
 <meta property="og:type" content="article">
 <meta property="og:title" content="mysql">
 <meta property="og:url" content="http://yoursite.com/2019/06/11/mysql/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="This is h1Hello world 这是我mysql总结： 1select * from .....   skill people lange  This">
+<meta property="og:description" content="mysql notes#short version第一篇：比like更高效的查询方法 like normal 用法 1select * from `table` where `field` like &amp;apos;%keyword%&amp;apos;;  其他更高效的查询方法 123select * from `table` where `field` instr(`field`, &amp;apos;keywo">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-06-11T14:42:30.096Z">
+<meta property="og:updated_time" content="2019-06-12T15:49:11.091Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="mysql">
-<meta name="twitter:description" content="This is h1Hello world 这是我mysql总结： 1select * from .....   skill people lange  This">
+<meta name="twitter:description" content="mysql notes#short version第一篇：比like更高效的查询方法 like normal 用法 1select * from `table` where `field` like &amp;apos;%keyword%&amp;apos;;  其他更高效的查询方法 123select * from `table` where `field` instr(`field`, &amp;apos;keywo">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -86,16 +86,47 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="This-is-h1"><a href="#This-is-h1" class="headerlink" title="This is h1"></a>This is h1</h1><p>Hello world</p>
-<p>这是我mysql总结：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from .....</span><br></pre></td></tr></table></figure>
+        <h1 id="mysql-notes"><a href="#mysql-notes" class="headerlink" title="mysql notes"></a>mysql notes</h1><h2 id="short-version"><a href="#short-version" class="headerlink" title="#short version"></a>#<del>short version</del></h2><h3 id="第一篇：比like更高效的查询方法"><a href="#第一篇：比like更高效的查询方法" class="headerlink" title="第一篇：比like更高效的查询方法"></a>第一篇：比like更高效的查询方法</h3><p> like normal 用法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from `table` where `field` like &apos;%keyword%&apos;;</span><br></pre></td></tr></table></figure>
 
+<p>其他更高效的查询方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">select * from `table` where `field` instr(`field`, &apos;keyword&apos;)&gt;0;</span><br><span class="line">select * from `table` where position(&apos;keyword&apos; in `field`);</span><br><span class="line">select * from `table` where `field` locate(&apos;keyword&apos;, `field`)&gt;0;</span><br></pre></td></tr></table></figure>
+
+<h3 id="第二篇：避免重复插入"><a href="#第二篇：避免重复插入" class="headerlink" title="第二篇：避免重复插入"></a>第二篇：避免重复插入</h3><p>要求:</p>
 <ol>
-<li>skill</li>
-<li>people</li>
-<li>lange</li>
+<li>表1存在主键或唯一键；</li>
+<li>表1和表2结构完全一样，如果不一样则需要指定插入的字段；</li>
 </ol>
-<p><strong>This</strong></p>
+<p>三种用法</p>
+<ol>
+<li><p>insert ignore into（只插入不重复的数据）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">insert ignore into `table1` select * from `table2`;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>replace into（重复数据更新，先删除后插入）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">replace into `table1` select * from `table2`;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>insert on duplicate key update（重复数据直接更新）</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">insert into `table1` select * from `table2` on duplicate key update</span><br></pre></td></tr></table></figure>
+
+<h3 id="第三篇：-去重复值"><a href="#第三篇：-去重复值" class="headerlink" title="第三篇： 去重复值"></a>第三篇： 去重复值</h3><p>如果数据表已经存在重复值需要怎么处理呢？</p>
+<ol>
+<li>新建一张数据结构相同的表，设置去重字段（可以是多个字段）为主键，insert ignore into…;</li>
+<li>添加自增主键（最好建表的时候就设自增主键，不然数据量大的话，增加自增主键还是挺慢的）<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">delete from `table` as a, (select min(rowid) as rowid, id from `table` as t group by id having count(*)&gt;1) as b  where a.id = b.id and a.rowid &gt; b.rowid</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="第四篇：-update-加索引"><a href="#第四篇：-update-加索引" class="headerlink" title="第四篇： update 加索引"></a>第四篇： update 加索引</h3><p>为什么要加索引？？？因为快呀。。。不加索引经常死锁的飘过。。。。<br>索引一般是多表关联更新的时候加，where 条件后的关联字段最好都加，关联的表都要加<br>经常用的就是添加一般索引</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">alter table add index index_name(`field`)</span><br><span class="line">alter table add unique (`field`)</span><br></pre></td></tr></table></figure>
+
+<h3 id="第五篇：-常见报错解决方案"><a href="#第五篇：-常见报错解决方案" class="headerlink" title="第五篇： 常见报错解决方案"></a>第五篇： 常见报错解决方案</h3><ol>
+<li><p>空间不够</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">show global variables like &apos;innodb_buffer_pool_size&apos;;</span><br><span class="line">set innodb_buffer_pool_size = 2147483648   #设置为2G</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>死锁<br>加索引呗，就不重复赘述了…</p>
+</li>
+</ol>
 
       
     </div>
